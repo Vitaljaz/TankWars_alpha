@@ -37,10 +37,10 @@ RedPlayer::RedPlayer(QGraphicsItem *parent, int _ID)
         setTransformOriginPoint(36, 36);
         setRotation(angle);
 
-        canMove = false;
-        moveTimer = new QTimer();
-        connect(moveTimer, &QTimer::timeout, this, &RedPlayer::slotMoveTimer);
-        moveTimer->start(400);
+//        canMove = false;
+//        moveTimer = new QTimer();
+//        connect(moveTimer, &QTimer::timeout, this, &RedPlayer::slotMoveTimer);
+//        moveTimer->start(400);
 
         canShot = false;
         bulletTimer = new QTimer();
@@ -57,11 +57,6 @@ RedPlayer::RedPlayer(QGraphicsItem *parent, int _ID)
         setTransformOriginPoint(36, 36);
         setRotation(angle);
 
-        canMove = false;
-        moveTimer = new QTimer();
-        connect(moveTimer, &QTimer::timeout, this, &RedPlayer::slotMoveTimer);
-        moveTimer->start(400);
-
         canShot = false;
         bulletTimer = new QTimer();
         connect(bulletTimer, &QTimer::timeout, this, &RedPlayer::slotBulletTimer);
@@ -74,10 +69,9 @@ RedPlayer::RedPlayer(QGraphicsItem *parent, int _ID)
 
 void RedPlayer::keyPressEvent(QKeyEvent* event){
         if(event->key() == Qt::Key_Up){
-            if (canMove){
-            emit sendMove(ID, this->pos().x(), this->pos().y() - 8, 180);
-            if (this->y() - 8 > 0){
-                this->setPos(x(), y() - 8);
+            emit sendMove(ID, this->pos().x(), this->pos().y() - 5, 180);
+            if (this->y() - 5 > 0){
+                this->setPos(x(), y() - 5);
                 idLastKeyPressed = 1;
                 if (checkCollision()){
                     resetPosition(idLastKeyPressed);
@@ -87,16 +81,13 @@ void RedPlayer::keyPressEvent(QKeyEvent* event){
                     angle = 180;
                     setRotation(angle);
                 }
-                canMove = false;
-            }
-        }
+             }
         }
 
         if (event->key() == Qt::Key_Down){
-            if (canMove) {
-            emit sendMove(ID, this->pos().x(), this->pos().y() + 8, 0);
-            if (this->y() + 8 < 533){
-                this->setPos(x(), y() + 8);
+            emit sendMove(ID, this->pos().x(), this->pos().y() + 5, 0);
+            if (this->y() + 5 < 533){
+                this->setPos(x(), y() + 5);
                 idLastKeyPressed = 2;
                 if (checkCollision()){
                     resetPosition(idLastKeyPressed);
@@ -109,13 +100,11 @@ void RedPlayer::keyPressEvent(QKeyEvent* event){
                 canMove = false;
         }
         }
-        }
 
         if (event->key() == Qt::Key_Right){
-            if (canMove) {
-            emit sendMove(ID, this->pos().x() + 8, this->pos().y(), -90);
-            if (this->x() + 8 < 533){
-                this->setPos(x() + 8, y());
+            emit sendMove(ID, this->pos().x() + 5, this->pos().y(), -90);
+            if (this->x() + 5 < 533){
+                this->setPos(x() + 5, y());
                 idLastKeyPressed = 3;
                 if (checkCollision()){
                     resetPosition(idLastKeyPressed);
@@ -127,14 +116,12 @@ void RedPlayer::keyPressEvent(QKeyEvent* event){
                 }
                 canMove = false;
             }
-            }
         }
 
         if (event->key() == Qt::Key_Left){
-            if (canMove){
-            emit sendMove(ID, this->pos().x() - 8, this->pos().y(), 90);
-            if(this->x() - 8 > 0){
-                this->setPos(x() - 8, y());
+            emit sendMove(ID, this->pos().x() - 5, this->pos().y(), 90);
+            if(this->x() - 5 > 0){
+                this->setPos(x() - 5, y());
                 idLastKeyPressed = 4;
                 if (checkCollision()){
                     resetPosition(idLastKeyPressed);
@@ -145,7 +132,6 @@ void RedPlayer::keyPressEvent(QKeyEvent* event){
                     setRotation(angle);
                 }
                 canMove = false;
-            }
             }
         }
 

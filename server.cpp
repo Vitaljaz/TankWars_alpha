@@ -37,7 +37,7 @@ bool Server::createServer(qint16 port)
 
     qDebug() << "[Server]: Server started with IP:" << "127.0.0.1:" <<"PORT:" << port;
     QObject::connect(&_timer,SIGNAL(timeout()),this,SLOT(checkSock()));
-    _timer.start(500);
+    _timer.start(20);
     return true;
 }
 

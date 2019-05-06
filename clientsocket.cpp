@@ -34,7 +34,7 @@ bool clientsocket::connectToServer(QString strIp, int port_){
            (const struct sockaddr *) &addr, sizeof(addr));
 
     QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(checkSock()));
-    _timer.start(100); //проверка по таймеру каждые 100 мс
+    _timer.start(20); //проверка по таймеру каждые 100 мс
     qDebug() << "[Client]: Connected to server";
     //close (sock);
     return true;
