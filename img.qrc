@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/">
+        <file>box.png</file>
+        <file>map_1_3.png</file>
+        <file>blue_tank.png</file>
+        <file>bullet.png</file>
+        <file>red_tank.png</file>
+        <file>hp_1.png</file>
+        <file>hp_2.png</file>
+        <file>map_black.png</file>
+        <file>box_1.png</file>
+        <file>blue_tank_win.png</file>
+        <file>game_ower.png</file>
+        <file>red_tank_win.png</file>
+        <file>wood_box.png</file>
+        <file>wooden_box_damage.png</file>
+        <file>waiting_room.png</file>
+    </qresource>
+</RCC>
