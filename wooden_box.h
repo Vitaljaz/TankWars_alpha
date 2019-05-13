@@ -10,8 +10,11 @@ class wooden_box : public QObject, public QGraphicsPixmapItem
     Q_OBJECT
 public:
     wooden_box(QGraphicsItem* parent = nullptr);
-    void getDamage();
-    int getHP() {return HP;}
     int HP;
+    bool inScene;
+
+    void getDamage();
+    void restoreHP();
+    int getHP() {return HP;}
 };
 #endif // WOODEN_BOX_H

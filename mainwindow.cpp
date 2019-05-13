@@ -1,12 +1,12 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include "redplayer.h"
-
+#include "player.h"
 #include "box.h"
 #include "wooden_box.h"
 #include "bullet.h"
 #include "server.h"
 #include "clientsocket.h"
+
 #include <QDebug>
 #include <QGraphicsPixmapItem>
 #include <QGraphicsItem>
@@ -31,11 +31,14 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(bluePlayer, SIGNAL(sendBullet(int,int,int,int)), this, SLOT(sendBullet(int,int,int,int)));
     connect(server, SIGNAL(connectPlayer()), this, SLOT(connectPlayer()));
     connect(client, SIGNAL(createBullet(int,int,int,int)), this, SLOT(createBullet(int,int,int,int)));
+    connect(client, SIGNAL(startNextRound(int)), this, SLOT(startNextRound(int)));
+    connect(client, SIGNAL(startRound()), this, SLOT(startRound()));
     connect(client, SIGNAL(setReadyPlayer(int)), this, SLOT(setReadyPlayer(int)));
     connect(client, SIGNAL(setMove(int,int,int,int)), this, SLOT(setMove(int,int,int,int)));
+    connect(client, SIGNAL(startGame()), this, SLOT(startGame()));
+    connect(client, SIGNAL(playerDisconnected(int)), this, SLOT(playerDisconnected(int)));
     connect(redPlayer, SIGNAL(sendMove(int,qreal,qreal,int)), this, SLOT(sendMove(int,qreal,qreal,int)));
     connect(bluePlayer, SIGNAL(sendMove(int,qreal,qreal,int)), this, SLOT(sendMove(int,qreal,qreal,int)));
-    qDebug() <<"Map created!";
 }
 
 MainWindow::~MainWindow()
@@ -63,12 +66,12 @@ void MainWindow::CreateMap(){
     heartBackground->setOffset(0, 0);
     healthScene->addItem(heartBackground);
 
-    redPlayer = new RedPlayer(nullptr, 0);
+    redPlayer = new Player(nullptr, 0);
     mainScene->addItem(redPlayer);
     redPlayer->setPos(20, 500);
     spawnRedPlayer();
 
-    bluePlayer = new RedPlayer(nullptr, 1);
+    bluePlayer = new Player(nullptr, 1);
     mainScene->addItem(bluePlayer);
     bluePlayer->setPos(510, 20);
     spawnBluePlayer();
@@ -91,36 +94,40 @@ void MainWindow::CreateMap(){
     box_4->setPos(400, 100);
 
     // add wooden boxes
-
-
-    wooden_box* wbox_1 = new wooden_box();
+    wbox_1 = new wooden_box();
     mainScene->addItem(wbox_1);
     wbox_1->setPos(120, 120);
+    wbox_1->inScene = true;
     woodenBoxList.push_back(wbox_1);
 
-    wooden_box* wbox_2 = new wooden_box();
+    wbox_2 = new wooden_box();
     mainScene->addItem(wbox_2);
     wbox_2->setPos(120, 200);
+    wbox_2->inScene = true;
     woodenBoxList.push_back(wbox_2);
 
-    wooden_box* wbox_3 = new wooden_box();
+    wbox_3 = new wooden_box();
     mainScene->addItem(wbox_3);
     wbox_3->setPos(200, 120);
+    wbox_3->inScene = true;
     woodenBoxList.push_back(wbox_3);
 
-    wooden_box* wbox_4 = new wooden_box();
+    wbox_4 = new wooden_box();
     mainScene->addItem(wbox_4);
     wbox_4->setPos(400, 400);
+    wbox_4->inScene = true;
     woodenBoxList.push_back(wbox_4);
 
-    wooden_box* wbox_5 = new wooden_box();
+    wbox_5 = new wooden_box();
     mainScene->addItem(wbox_5);
     wbox_5->setPos(400, 320);
+    wbox_5->inScene = true;
     woodenBoxList.push_back(wbox_5);
 
-    wooden_box* wbox_6 = new wooden_box();
+    wbox_6 = new wooden_box();
     mainScene->addItem(wbox_6);
     wbox_6->setPos(320, 400);
+    wbox_6->inScene = true;
     woodenBoxList.push_back(wbox_6);
 
     // add walls
@@ -147,6 +154,103 @@ void MainWindow::connectionController(int status)
     }
 }
 
+void MainWindow::spawnRedPlayer()
+{
+    redPlayer->setRotation(180);
+    redPlayer->show();
+    redPlayer->setPos(20, 500);
+    ui->graphicsView->setFocus();
+}
+
+void MainWindow::spawnBluePlayer()
+{
+    bluePlayer->setRotation(0);
+    bluePlayer->show();
+    bluePlayer->setPos(510, 20);
+    ui->graphicsView->setFocus();
+}
+
+void MainWindow::fixWoodenBoxes()
+{
+    for (int i = 0; i < woodenBoxList.size(); ++i)
+    {
+        if (woodenBoxList[i]->inScene == false){
+            mainScene->addItem(woodenBoxList[i]);
+            woodenBoxList[i]->inScene = true;
+        }
+
+        if (woodenBoxList[i]->getHP() < 2){
+            woodenBoxList[i]->restoreHP();
+        }
+    }
+}
+
+void MainWindow::playerDisconnected(int player)
+{
+    if (player == 0){
+        ui->r_gameStatus->setText("Game status: leave");
+        ui->r_connectStatus->setText("Connect status: disconnect");
+        QImage mapImage_black(":/disconnect.png");
+        ui->btnReady->setDisabled(true);
+        disconnectBackground = new QGraphicsPixmapItem(QPixmap::fromImage(mapImage_black));
+        disconnectBackground->setOffset(5, 5);
+        mainScene->addItem(disconnectBackground);
+        ui->btnDisconnect->setDisabled(true);
+        ui->btnExit->show();
+    }
+    else {
+        ui->b_gameStatus->setText("Game status: leave");
+        ui->b_connectStatus->setText("Connect status: disconnect");
+        QImage mapImage_black(":/disconnect.png");
+        ui->btnReady->setDisabled(true);
+        disconnectBackground = new QGraphicsPixmapItem(QPixmap::fromImage(mapImage_black));
+        disconnectBackground->setOffset(5, 5);
+        mainScene->addItem(disconnectBackground);
+        ui->btnDisconnect->setDisabled(true);
+        ui->btnExit->show();
+    }
+}
+
+void MainWindow::startGame()
+{
+    mainScene->removeItem(waiting_room);
+    ui->r_gameStatus->setText("Game status: in game");
+    ui->b_gameStatus->setText("Game status: in game");
+}
+
+void MainWindow::startRound()
+{
+    mainScene->removeItem(mapBackground_black);
+    ui->btnExit->hide();
+    ui->btnRestart->setEnabled(true);
+    ui->btnRestart->hide();
+    spawnBluePlayer();
+    spawnRedPlayer();
+    ui->b_gameStatus->setText("Game status: in game");
+    ui->r_gameStatus->setText("Game status: in game");
+    setHP4BluePlayer(5);
+    setHP4RedPlayer(5);
+    isRedWantsNextRound = false;
+    isBlueWantsNextRound = false;
+    fixWoodenBoxes();
+}
+
+void MainWindow::startNextRound(int player)
+{
+    if (player == 0){
+        isRedWantsNextRound = true;
+        ui->r_gameStatus->setText("Game status: ready");
+    }
+    if (player == 1) {
+        isBlueWantsNextRound = true;
+        ui->b_gameStatus->setText("Game status: ready");
+    }
+
+    if (isRedWantsNextRound && isBlueWantsNextRound){
+        client->sendStartRound();
+    }
+}
+
 void MainWindow::sendBullet(int player, int lastkey, int x, int y)
 {
     client->sendBullet(player, x, y, lastkey);
@@ -157,15 +261,10 @@ void MainWindow::setReadyPlayer(int playerID_)
     if (playerID_ == 0){
         isReadyRedPlayer = true;
         ui->r_gameStatus->setText("Game status: ready");
-        connectionController(1);
     }
     else {
         isReadyBluePlayer = true;
         ui->b_gameStatus->setText("Game status: ready");
-        connectionController(1);
-    }
-    if (isReadyRedPlayer == true && isReadyBluePlayer == true){
-        connectionController(1);
     }
 }
 
@@ -186,7 +285,7 @@ void MainWindow::setMove(int playerID, int x, int y, int angle)
 
 void MainWindow::createBullet(int player, int idLastKey, int x, int y)
 {
-    Bullet* _bullet = new Bullet(idLastKey, x, y, playerID);
+    Bullet* _bullet = new Bullet(idLastKey, x, y, player);
     connect(_bullet, SIGNAL(deleteBullet(Bullet*)), this, SLOT(deleteBullet(Bullet*)));
     connect(_bullet, SIGNAL(bluePlayerGetDamage(Bullet*)), this, SLOT(bluePlayerGetDamage(Bullet*)));
     connect(_bullet, SIGNAL(redPlayerGetDamage(Bullet*)), this, SLOT(redPlayerGetDamage(Bullet*)));
@@ -277,31 +376,14 @@ void MainWindow::setHP4BluePlayer(int hp)
     }
 }
 
-void MainWindow::spawnRedPlayer()
-{
-    redPlayer->setRotation(180);
-    redPlayer->show();
-    redPlayer->setPos(20, 500);
-    ui->graphicsView->setFocus();
-}
-
-void MainWindow::spawnBluePlayer()
-{
-    bluePlayer->setRotation(0);
-    bluePlayer->show();
-    bluePlayer->setPos(510, 20);
-    ui->graphicsView->setFocus();
-}
-
 void MainWindow::bluePlayerWin()
 {
     if (bluePlayer->score < 4){
     QImage mapImage_black(":/blue_tank_win.png");
     mapBackground_black = new QGraphicsPixmapItem(QPixmap::fromImage(mapImage_black));
-    mapBackground_black->setOffset(0, 0);
+    mapBackground_black->setOffset(5, 5);
     mainScene->addItem(mapBackground_black);
 
-    ui->btnExit->show();
     ui->btnRestart->show();
 
     bluePlayer->hide();
@@ -309,6 +391,9 @@ void MainWindow::bluePlayerWin()
 
     bluePlayer->score++;
     ui->bScore->setText(QString::number(bluePlayer->score));
+
+    ui->b_gameStatus->setText("Game status: not ready");
+    ui->r_gameStatus->setText("Game status: not ready");
 
     }
     else {
@@ -321,10 +406,9 @@ void MainWindow::redPlayerWin()
     if (redPlayer->score < 4){
     QImage mapImage_black(":/red_tank_win.png");
     mapBackground_black = new QGraphicsPixmapItem(QPixmap::fromImage(mapImage_black));
-    mapBackground_black->setOffset(0, 0);
+    mapBackground_black->setOffset(5, 5);
     mainScene->addItem(mapBackground_black);
 
-    ui->btnExit->show();
     ui->btnRestart->show();
 
     bluePlayer->hide();
@@ -332,6 +416,10 @@ void MainWindow::redPlayerWin()
 
     redPlayer->score++;
     ui->rScore->setText(QString::number(redPlayer->score));
+
+    ui->b_gameStatus->setText("Game status: not ready");
+    ui->r_gameStatus->setText("Game status: not ready");
+
     }
     else {
         endGame();
@@ -343,7 +431,7 @@ void MainWindow::endGame()
     ui->btnExit->show();
     QImage mapImage_black(":/game_ower.png");
     mapBackground_black = new QGraphicsPixmapItem(QPixmap::fromImage(mapImage_black));
-    mapBackground_black->setOffset(0, 0);
+    mapBackground_black->setOffset(5, 5);
     mainScene->addItem(mapBackground_black);
 }
 
@@ -362,21 +450,42 @@ void MainWindow::setControll()
 
 void MainWindow::on_btnRestart_clicked()
 {
-    mainScene->removeItem(mapBackground_black);
-    ui->btnExit->hide();
-    ui->btnRestart->hide();
-    spawnBluePlayer();
-    spawnRedPlayer();
-    setHP4BluePlayer(5);
-    setHP4RedPlayer(5);
+    client->sendNextRound(playerID);
+    ui->btnRestart->setDisabled(true);
+    if (playerID == 0) {
+        isRedWantsNextRound = true;
+        ui->r_gameStatus->setText("Game status: ready");
+    }
+    if (playerID == 1){
+        isBlueWantsNextRound = true;
+        ui->b_gameStatus->setText("Game status: ready");
+    }
+
+    if (isRedWantsNextRound && isBlueWantsNextRound){
+        client->sendStartRound();
+    }
 }
 
 void MainWindow::on_btnExit_clicked()
 {
+    client->sendExit(playerID);
+    client->disconnect();
+
+    for (int i = 0; i < woodenBoxList.size(); ++i)
+        delete woodenBoxList[i];
+
+    woodenBoxList.clear();
+    delete healthScene;
+    delete client;
+    delete server;
+    delete mapBackground_black;
+    delete waiting_room;
+    delete disconnectBackground;
     delete redPlayer;
     delete bluePlayer;
     delete mainScene;
     delete healthScene;
+    delete ui;
     QApplication::exit();
 }
 
@@ -415,8 +524,8 @@ void MainWindow::woodenBoxGetDamage(Bullet *bullet_, QGraphicsItem* woodenBox)
         if (woodenBox == woodenBoxList[i]){
             woodenBoxList[i]->getDamage();
             if (woodenBoxList[i]->getHP() == 0){
+                woodenBoxList[i]->inScene = false;
                 mainScene->removeItem(woodenBoxList[i]);
-                delete woodenBoxList[i];
             }
         }
     }
@@ -457,3 +566,20 @@ void MainWindow::on_btnNewGame_clicked()
     }
 }
 
+
+void MainWindow::on_btnDisconnect_clicked()
+{
+    client->sendDisconnect(playerID);
+    client->disconnect();
+    ui->btnDisconnect->setDisabled(true);
+    ui->btnReady->setDisabled(true);
+    if (playerID == 0){
+        ui->r_gameStatus->setText("Game status: leave");
+        ui->r_connectStatus->setText("Connect status: disconnect");
+    }
+    else {
+        ui->b_gameStatus->setText("Game status: leave");
+        ui->b_connectStatus->setText("Connect status: disconnect");
+    }
+    endGame();
+}

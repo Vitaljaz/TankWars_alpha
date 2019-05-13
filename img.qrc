@@ -15,5 +15,6 @@
         <file>wood_box.png</file>
         <file>wooden_box_damage.png</file>
         <file>waiting_room.png</file>
+        <file>disconnect.png</file>
     </qresource>
 </RCC>

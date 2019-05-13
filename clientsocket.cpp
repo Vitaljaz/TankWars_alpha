@@ -15,6 +15,7 @@ bool clientsocket::connectToServer(QString strIp, int port_){
     IP = cIpStr;
     char *connect = "1";
     sock = socket(AF_INET, SOCK_DGRAM, 0);
+    isOpen = true;
 
     if (sock < 0) {
         perror("[Client]: Error with create socket");
@@ -25,25 +26,27 @@ bool clientsocket::connectToServer(QString strIp, int port_){
     addr.sin_port = htons(port);
     addr.sin_addr.s_addr = inet_addr(IP);
 
-
     int flags = 1;
     ioctl(sock, FIONBIO, &flags);
 
-    qDebug() << strlen(connect);
     sendto(sock, (const char *)connect, strlen(connect), 0,
            (const struct sockaddr *) &addr, sizeof(addr));
 
     QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(checkSock()));
-    _timer.start(20); //проверка по таймеру каждые 100 мс
+    _timer.start(20);
     qDebug() << "[Client]: Connected to server";
-    //close (sock);
     return true;
+}
+
+void clientsocket::disconnect()
+{
+    close(sock);
 }
 
 void clientsocket::writeData(QByteArray& data)
 {
     int byteCount = data.size();
-    qDebug() << "[Client]: Message send to server byte: " << byteCount;
+    //qDebug() << "[Client]: Message send to server byte: " << byteCount;
     sendto(sock, data.data(), byteCount, 0,
            (const struct sockaddr*) &addr, sizeof(addr));
 }
@@ -56,6 +59,45 @@ void clientsocket::readData(QByteArray& data, int byteCount)
              (struct sockaddr*) &addr, &len);
     data.append(buf, byteCount);
     bzero(buf, sizeof(buf));
+}
+
+void clientsocket::sendExit(qint16 playerID)
+{
+    qDebug() << "[Client]: Send exit: " << playerID;
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << comExit;
+    out << playerID;
+    writeData(block);
+}
+
+void clientsocket::sendDisconnect(qint16 playerID)
+{
+    qDebug() << "[Client]: Send disconnect : " << playerID;
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << comDisconnect;
+    out << playerID;
+    writeData(block);
+}
+
+void clientsocket::sendNextRound(qint16 playerID)
+{
+    qDebug() << "[Client]: Send next round ask : " << playerID;
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << comNextRound;
+    out << playerID;
+    writeData(block);
+}
+
+void clientsocket::sendStartRound()
+{
+    qDebug() << "[Client]: Send start round ask";
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << comStartRound;
+    writeData(block);
 }
 
 void clientsocket::sendReadyStatus(qint16 playerID)
@@ -71,7 +113,7 @@ void clientsocket::sendReadyStatus(qint16 playerID)
 
 void clientsocket::sendMove(qint16 playerID, qint16 x, qint16 y, qint16 angle)
 {
-    qDebug() << "[Client]: Send move : " << playerID << x << y << angle;
+    //qDebug() << "[Client]: Send move : " << playerID << x << y << angle;
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << comMove;
@@ -84,7 +126,7 @@ void clientsocket::sendMove(qint16 playerID, qint16 x, qint16 y, qint16 angle)
 
 void clientsocket::sendBullet(qint16 playerID, qint16 x, qint16 y, qint16 lastkey)
 {
-    qDebug() << "[Client]: Send shoot : " << playerID;
+    //qDebug() << "[Client]: Send shoot : " << playerID;
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
     out << comShoot;
@@ -129,7 +171,7 @@ void clientsocket::checkSock(){
         in >> x;
         in >> y;
         in >> angle;
-        qDebug()<< "[Client]: Move accept from: " << playerID;
+        //qDebug()<< "[Client]: Move accept from: " << playerID;
         emit setMove(playerID, x, y, angle);
         break;
     }
@@ -141,7 +183,40 @@ void clientsocket::checkSock(){
         in >> y;
         in >> lastkey;
         emit createBullet(playerID, lastkey, x, y);
-        qDebug()<< "[Client]: Shoot accept from: " << playerID;
+        //qDebug()<< "[Client]: Shoot accept from: " << playerID;
+        break;
+    }
+    case comStartGame:{
+        ioctl(sock, FIONREAD, &byteAv);
+        emit startGame();
+        break;
+    }
+    case comNextRound:{
+        ioctl(sock, FIONREAD, &byteAv);
+        qint16 playerID;
+        in >> playerID;
+        emit startNextRound(playerID);
+        break;
+    }
+    case comStartRound:{
+        ioctl(sock, FIONREAD, &byteAv);
+        emit startRound();
+        break;
+    }
+    case comDisconnect:{
+        ioctl(sock, FIONREAD, &byteAv);
+        qint16 playerID;
+        in >> playerID;
+        qDebug() << "[Client]: accept disconnect " << playerID;
+        emit playerDisconnected(playerID);
+        break;
+    }
+    case comExit:{
+        ioctl(sock, FIONREAD, &byteAv);
+        qint16 playerID;
+        in >> playerID;
+        qDebug() << "[Client]: accept exit " << playerID;
+        emit playerDisconnected(playerID);
         break;
     }
     }

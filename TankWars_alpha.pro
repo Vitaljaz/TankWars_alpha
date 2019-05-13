@@ -26,33 +26,29 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    redplayer.cpp \
     box.cpp \
     bullet.cpp \
     wooden_box.cpp \
     server.cpp \
-    clientsocket.cpp
+    clientsocket.cpp \
+    player.cpp
 
 HEADERS += \
         mainwindow.h \
-    redplayer.h \
     box.h \
     bullet.h \
     wooden_box.h \
     server.h \
     clientsocket.h \
-    address.h
+    address.h \
+    player.h
 
 
 FORMS += \
         mainwindow.ui
 
 DISTFILES += \
-    images/qt-unified-linux-x64-3.0.6-online.run \
-    images/barrelBlack_side.png \
-    images/blue_tank_1.png \
-    images/map_beta.png \
-    images/red_tank_1.png
+    images/qt-unified-linux-x64-3.0.6-online.run
 
 RESOURCES += \
     img.qrc

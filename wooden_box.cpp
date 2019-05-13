@@ -11,3 +11,9 @@ void wooden_box::getDamage()
     setPixmap(QPixmap(":/wooden_box_damage.png"));
     this->HP--;
 }
+
+void wooden_box::restoreHP()
+{
+    setPixmap(QPixmap(":/wood_box.png"));
+    HP = 2;
+}

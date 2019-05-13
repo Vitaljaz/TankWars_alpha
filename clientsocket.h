@@ -18,7 +18,12 @@
 
 enum { comReady,
        comMove,
-       comShoot
+       comShoot,
+       comStartGame,
+       comNextRound,
+       comStartRound,
+       comDisconnect,
+       comExit
      };
 
 class clientsocket: public QObject
@@ -28,6 +33,11 @@ public:
     clientsocket();
 
     bool connectToServer(QString strIp, int port_);
+    void disconnect();
+    void sendExit(qint16 playerID);
+    void sendDisconnect(qint16 playerID);
+    void sendNextRound(qint16 playerID);
+    void sendStartRound();
     void sendReadyStatus(qint16 playerID);
     void sendMove(qint16 playerID, qint16 x, qint16 y, qint16 angle);
     void sendBullet(qint16 playerID, qint16 x, qint16 y, qint16 lastkey);
@@ -45,12 +55,17 @@ private:
     int sock;
     char buf[1024];
     char* IP;
+    bool isOpen;
 
 
 signals:
+    void playerDisconnected(int player);
     void setReadyPlayer(int playerID);
     void setMove(int playerID, int x, int y, int lastKey);
     void createBullet(int player, int idLastKey, int x, int y);
+    void startGame();
+    void startNextRound(int player);
+    void startRound();
 
 private slots:
     void checkSock(); //проверка доступных байтов

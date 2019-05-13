@@ -89,6 +89,9 @@ void Server::checkSock(){
                    (const struct sockaddr*) &sock_c1, client1_len);
         }
         stage++;
+        if (stage == 2){
+            sendStartGame();
+        }
         return;
     }
 
@@ -119,4 +122,17 @@ void Server::writeData(int socketz, QByteArray& data)
     size_t byteCount = data.size();
     qDebug() << "[Server]: Write data: " << byteCount;
     sendto(socketz, data.data(), byteCount, 0, (sockaddr*)&_addr, len);
+}
+
+void Server::sendStartGame()
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << comStartGame;
+    int byteCount = block.size();
+    qDebug() << "[Server]: Start game!";
+    sendto(listener, block.data(), byteCount, 0,
+           (const struct sockaddr*) &sock_c2, client2_len);
+    sendto(listener, block.data(), byteCount, 0,
+           (const struct sockaddr*) &sock_c1, client1_len);
 }

@@ -8,7 +8,7 @@
 #include <QGraphicsPixmapItem>
 #include <QLabel>
 
-#include <redplayer.h>
+#include <player.h>
 #include <bullet.h>
 #include <wooden_box.h>
 #include <server.h>
@@ -30,21 +30,30 @@ public:
     ~MainWindow();
     QGraphicsScene* mainScene;
     QGraphicsScene* healthScene;
-    RedPlayer* redPlayer;
-    RedPlayer* bluePlayer;
+    Player* redPlayer;
+    Player* bluePlayer;
     clientsocket* client;
     Server* server;
     QList <wooden_box*> woodenBoxList;
     QGraphicsPixmapItem* mapBackground_black;
     QGraphicsPixmapItem* waiting_room;
+    QGraphicsPixmapItem* disconnectBackground;
+    wooden_box* wbox_1;
+    wooden_box* wbox_2;
+    wooden_box* wbox_3;
+    wooden_box* wbox_4;
+    wooden_box* wbox_5;
+    wooden_box* wbox_6;
 
     void CreateMap();
+    void fixWoodenBoxes();
     void connectionController(int status);
 
     int playerID;
     bool isReadyRedPlayer;
     bool isReadyBluePlayer;
-
+    bool isRedWantsNextRound;
+    bool isBlueWantsNextRound;
 
 signals:
 
@@ -52,6 +61,10 @@ public slots:
 
 
 private slots:
+    void playerDisconnected(int player);
+    void startGame();
+    void startRound();
+    void startNextRound(int player);
     void sendBullet(int player, int lastkey, int x, int y);
     void createBullet(int player, int idLastKey, int x, int y);
     void deleteBullet(Bullet* bullet_);
@@ -68,6 +81,8 @@ private slots:
     void setReadyPlayer(int playerID_);
     void sendMove(int playerID, qreal x, qreal y, int angle);
     void setMove(int playerID, int x, int y, int angle);
+
+    void on_btnDisconnect_clicked();
 
 private:
     void setHP4RedPlayer(int hp);
