@@ -35,14 +35,38 @@ bool Server::createServer(qint16 port)
         return false;
     }
 
-    qDebug() << "[Server]: Server started with IP:" << "127.0.0.1:" <<"PORT:" << port;
+    char ipAddress[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(_addr.sin_addr), ipAddress, INET_ADDRSTRLEN);
+
+    qDebug() << "[Server]: Server started with IP:" << ipAddress <<" PORT:" << port;
     QObject::connect(&_timer,SIGNAL(timeout()),this,SLOT(checkSock()));
     _timer.start(20);
     return true;
 }
 
+void Server::sendToClient(int mode, int port, QByteArray &data)
+{
+    int byteCount = data.size();
+    if (mode == 0) {
+        if (port == client1.GetPort()){
+            sendto(listener, data.data(), byteCount, 0,
+                   (const struct sockaddr*) &sock_c2, client2_len);
+        }
+        else {
+            sendto(listener, data.data(), byteCount, 0,
+                   (const struct sockaddr*) &sock_c1, client1_len);
+        }
+    }
+    else {
+        sendto(listener, data.data(), byteCount, 0,
+               (const struct sockaddr*) &sock_c1, client1_len);
+        sendto(listener, data.data(), byteCount, 0,
+               (const struct sockaddr*) &sock_c2, client2_len);
+    }
+
+}
+
 void Server::checkSock(){
-    bzero(buf, 1024);
     if (playersOnServer == 0){
         int n = recvfrom(listener, buf, 1024, 0, (struct sockaddr *) &sock_c1, &client1_len);
         if (n < 0){
@@ -95,6 +119,12 @@ void Server::checkSock(){
         return;
     }
 
+
+    static QByteArray readBuffer;
+    readBuffer.clear();
+    bzero(buf, 1024);
+
+
     sockaddr_in from;
     socklen_t fromLength = sizeof(from);
     int n = recvfrom(listener, buf, 1024, 0, (struct sockaddr *) &from, &fromLength);
@@ -102,26 +132,155 @@ void Server::checkSock(){
         return;
     };
 
-    //unsigned int address = ntohl(from.sin_addr.s_addr );
     unsigned short port = ntohs(from.sin_port);
-    if (port == client1.GetPort()){
-        sendto(listener, buf, 1024, 0,
-               (const struct sockaddr*) &sock_c2, client2_len);
+
+    readBuffer.append(buf, 1024);
+    bzero(buf, 1024);
+    QDataStream in (readBuffer);
+    int command;
+    in >> command;
+
+    switch (command)
+    {
+    case comMove: {
+        qint16 playerID, x, y, angle;
+        in >> playerID;
+        in >> x;
+        in >> y;
+        in >> angle;
+        qDebug()<< "[Server]: Move accept from: " << playerID;
+
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << comMove;
+        out << playerID;
+        out << x;
+        out << y;
+        out << angle;
+
+        sendToClient(0, port, block);
+
+        break;
     }
-    else {
-        sendto(listener, buf, 1024, 0,
-               (const struct sockaddr*) &sock_c1, client1_len);
+    case comShoot: {
+        qint16 playerID, x, y, lastkey;
+        in >> playerID;
+        in >> x;
+        in >> y;
+        in >> lastkey;
+
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << comShoot;
+        out << playerID;
+        out << x;
+        out << y;
+        out << lastkey;
+
+        sendToClient(0, port, block);
+        break;
+    }
+    case comStartGame: {
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << comStartGame;
+
+        sendToClient(0, port, block);
+        break;
+    }
+    case comStartRound: {
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << comStartRound;
+
+        sendToClient(0, port, block);
+        break;
+    }
+    case comDisconnect: {
+        qint16 playerID;
+        in >> playerID;
+        qDebug() << "[Server]: accept disconnect " << playerID;
+
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << comDisconnect;
+        out << playerID;
+
+        sendToClient(0, port, block);
+        break;
+    }
+    case comNextRound: {
+        qint16 playerID;
+        in >> playerID;
+
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << comNextRound;
+        out << playerID;
+
+        sendToClient(0, port, block);
+        break;
+    }
+    case comReady: {
+        qint16 playerID;
+        in >> playerID;
+        qDebug() <<"[Server]: accept ready " << playerID;
+
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << comReady;
+        out << playerID;
+
+        sendToClient(0, port, block);
+        break;
+
+    }
+    case comExit: {
+        qint16 playerID;
+        in >> playerID;
+        qDebug() << "[Server]: accept exit " << playerID;
+
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << comExit;
+        out << playerID;
+
+        sendToClient(0, port, block);
+
+        break;
+    }
+    case comHit: {
+        qint16 playerID;
+        in >> playerID;
+
+        if (playerID == 0) {
+            redTankHP--;
+            if (redTankHP == 0) {
+                blueScore++;
+                redTankHP = 5;
+                blueTankHP = 5;
+            }
+        } else {
+            blueTankHP--;
+            if (blueTankHP == 0){
+                redScore++;
+                blueTankHP = 5;
+                redTankHP = 5;
+            }
+        }
+        qDebug() << "[Server]: BlueHP: " << blueTankHP << " RedHP: "<< redTankHP;
+        QByteArray block;
+        QDataStream out(&block, QIODevice::WriteOnly);
+        out << comHit;
+        out << playerID;
+
+        sendToClient(1, port, block);
+
+        break;
+    }
+
     }
     return;
-}
-
-
-void Server::writeData(int socketz, QByteArray& data)
-{
-    socklen_t len;
-    size_t byteCount = data.size();
-    qDebug() << "[Server]: Write data: " << byteCount;
-    sendto(socketz, data.data(), byteCount, 0, (sockaddr*)&_addr, len);
 }
 
 void Server::sendStartGame()

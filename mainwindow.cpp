@@ -36,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     connect(client, SIGNAL(setReadyPlayer(int)), this, SLOT(setReadyPlayer(int)));
     connect(client, SIGNAL(setMove(int,int,int,int)), this, SLOT(setMove(int,int,int,int)));
     connect(client, SIGNAL(startGame()), this, SLOT(startGame()));
+    connect(client, SIGNAL(setHit(int)), this, SLOT(setHit(int)));
     connect(client, SIGNAL(playerDisconnected(int)), this, SLOT(playerDisconnected(int)));
     connect(redPlayer, SIGNAL(sendMove(int,qreal,qreal,int)), this, SLOT(sendMove(int,qreal,qreal,int)));
     connect(bluePlayer, SIGNAL(sendMove(int,qreal,qreal,int)), this, SLOT(sendMove(int,qreal,qreal,int)));
@@ -283,6 +284,50 @@ void MainWindow::setMove(int playerID, int x, int y, int angle)
     }
 }
 
+void MainWindow::setHit(int playerID)
+{
+    if (playerID == 0){
+        redPlayer->health--;
+        QPixmap pixmap(":/hp_2.png");
+        if (redPlayer->health == 0){
+            ui->r_hp1->setPixmap(pixmap);
+            bluePlayerWin();
+        }
+        if (redPlayer->health == 4){
+            ui->r_hp5->setPixmap(pixmap);
+        }
+        if (redPlayer->health == 3){
+            ui->r_hp4->setPixmap(pixmap);
+        }
+        if (redPlayer->health == 2){
+            ui->r_hp3->setPixmap(pixmap);
+        }
+        if (redPlayer->health == 1){
+            ui->r_hp2->setPixmap(pixmap);
+        }
+    }
+    else {
+        bluePlayer->health--;
+        QPixmap pixmap(":/hp_2.png");
+        if (bluePlayer->health == 0){
+            ui->b_hp1->setPixmap(pixmap);
+            redPlayerWin();
+        }
+        if (bluePlayer->health == 4){
+            ui->b_hp5->setPixmap(pixmap);
+        }
+        if (bluePlayer->health == 3){
+            ui->b_hp4->setPixmap(pixmap);
+        }
+        if (bluePlayer->health == 2){
+            ui->b_hp3->setPixmap(pixmap);
+        }
+        if (bluePlayer->health == 1){
+            ui->b_hp2->setPixmap(pixmap);
+        }
+    }
+}
+
 void MainWindow::createBullet(int player, int idLastKey, int x, int y)
 {
     Bullet* _bullet = new Bullet(idLastKey, x, y, player);
@@ -301,46 +346,17 @@ void MainWindow::deleteBullet(Bullet *bullet_)
 
 void MainWindow::bluePlayerGetDamage(Bullet* bullet_)
 {
-    bluePlayer->health--;
-    QPixmap pixmap(":/hp_2.png");
-    if (bluePlayer->health == 0){
-        ui->b_hp1->setPixmap(pixmap);
-        redPlayerWin();
+    if (playerID == 0){
+        client->sendHit(1);
     }
-    if (bluePlayer->health == 4){
-        ui->b_hp5->setPixmap(pixmap);
-    }
-    if (bluePlayer->health == 3){
-        ui->b_hp4->setPixmap(pixmap);
-    }
-    if (bluePlayer->health == 2){
-        ui->b_hp3->setPixmap(pixmap);
-    }
-    if (bluePlayer->health == 1){
-        ui->b_hp2->setPixmap(pixmap);
-    }
+
     mainScene->removeItem(bullet_);
 }
 
 void MainWindow::redPlayerGetDamage(Bullet* bullet_)
 {
-    redPlayer->health--;
-    QPixmap pixmap(":/hp_2.png");
-    if (redPlayer->health == 0){
-        ui->r_hp1->setPixmap(pixmap);
-        bluePlayerWin();
-    }
-    if (redPlayer->health == 4){
-        ui->r_hp5->setPixmap(pixmap);
-    }
-    if (redPlayer->health == 3){
-        ui->r_hp4->setPixmap(pixmap);
-    }
-    if (redPlayer->health == 2){
-        ui->r_hp3->setPixmap(pixmap);
-    }
-    if (redPlayer->health == 1){
-        ui->r_hp2->setPixmap(pixmap);
+    if (playerID == 1) {
+        client->sendHit(0);
     }
     mainScene->removeItem(bullet_);
 }

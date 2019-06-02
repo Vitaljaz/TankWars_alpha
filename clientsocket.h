@@ -16,14 +16,17 @@
 
 #include <mainwindow.h>
 
-enum { comReady,
+enum { comConnect,
+       comReady,
        comMove,
        comShoot,
        comStartGame,
        comNextRound,
        comStartRound,
        comDisconnect,
-       comExit
+       comExit,
+       comHit,
+       comVictory,
      };
 
 class clientsocket: public QObject
@@ -37,6 +40,7 @@ public:
     void sendExit(qint16 playerID);
     void sendDisconnect(qint16 playerID);
     void sendNextRound(qint16 playerID);
+    void sendHit(qint16 playerID);
     void sendStartRound();
     void sendReadyStatus(qint16 playerID);
     void sendMove(qint16 playerID, qint16 x, qint16 y, qint16 angle);
@@ -66,6 +70,7 @@ signals:
     void startGame();
     void startNextRound(int player);
     void startRound();
+    void setHit(int playerID);
 
 private slots:
     void checkSock(); //проверка доступных байтов

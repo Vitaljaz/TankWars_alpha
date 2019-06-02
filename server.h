@@ -34,13 +34,20 @@ public:
     Address client2;
 
     bool createServer(qint16);
-    void writeData(int socketz, QByteArray& data);
+    void sendToClient(int mode, int port, QByteArray& data);
 
 private:
     int playersOnServer = 0;
     int stage = 0;
     int numsock[2];
     int listener;
+
+    int blueTankHP = 5;
+    int redTankHP  = 5;
+    int blueScore  = 0;
+    int redScore   = 0;
+
+
     char buf[1024];
 
     QTimer _timer;

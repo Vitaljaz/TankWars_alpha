@@ -13,7 +13,6 @@ bool clientsocket::connectToServer(QString strIp, int port_){
     strcpy(cIpStr,ba);
     port = port_;
     IP = cIpStr;
-    char *connect = "1";
     sock = socket(AF_INET, SOCK_DGRAM, 0);
     isOpen = true;
 
@@ -29,8 +28,10 @@ bool clientsocket::connectToServer(QString strIp, int port_){
     int flags = 1;
     ioctl(sock, FIONBIO, &flags);
 
-    sendto(sock, (const char *)connect, strlen(connect), 0,
-           (const struct sockaddr *) &addr, sizeof(addr));
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << comConnect;
+    writeData(block); // connect
 
     QObject::connect(&_timer, SIGNAL(timeout()), this, SLOT(checkSock()));
     _timer.start(20);
@@ -91,6 +92,15 @@ void clientsocket::sendNextRound(qint16 playerID)
     writeData(block);
 }
 
+void clientsocket::sendHit(qint16 playerID)
+{
+    QByteArray block;
+    QDataStream out(&block, QIODevice::WriteOnly);
+    out << comHit;
+    out << playerID;
+    writeData(block);
+}
+
 void clientsocket::sendStartRound()
 {
     qDebug() << "[Client]: Send start round ask";
@@ -138,7 +148,7 @@ void clientsocket::sendBullet(qint16 playerID, qint16 x, qint16 y, qint16 lastke
 }
 
 void clientsocket::checkSock(){
-    //ioctl(sock, FIONREAD, &byteAv);
+    ioctl(sock, FIONREAD, &byteAv);
     bzero(buf, 1024);
     static QByteArray readBuffer;
     readBuffer.clear();
@@ -217,6 +227,12 @@ void clientsocket::checkSock(){
         in >> playerID;
         qDebug() << "[Client]: accept exit " << playerID;
         emit playerDisconnected(playerID);
+        break;
+    }
+    case comHit: {
+        qint16 playerID;
+        in >> playerID;
+        emit setHit(playerID);
         break;
     }
     }

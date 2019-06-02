@@ -81,6 +81,7 @@ private slots:
     void setReadyPlayer(int playerID_);
     void sendMove(int playerID, qreal x, qreal y, int angle);
     void setMove(int playerID, int x, int y, int angle);
+    void setHit(int playerID);
 
     void on_btnDisconnect_clicked();
 
