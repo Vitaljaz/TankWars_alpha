@@ -5,6 +5,7 @@
 #include <QGraphicsPixmapItem>
 #include <QGraphicsItem>
 #include <QObject>
+
 #include <wooden_box.h>
 
 class Bullet : public QObject, public QGraphicsPixmapItem

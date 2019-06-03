@@ -1,3 +1,8 @@
+#include <QDebug>
+#include <QGraphicsPixmapItem>
+#include <QGraphicsItem>
+#include <QList>
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "player.h"
@@ -6,11 +11,6 @@
 #include "bullet.h"
 #include "server.h"
 #include "clientsocket.h"
-
-#include <QDebug>
-#include <QGraphicsPixmapItem>
-#include <QGraphicsItem>
-#include <QList>
 
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {

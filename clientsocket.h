@@ -1,17 +1,18 @@
 #ifndef CLIENTSOCKET_H
 #define CLIENTSOCKET_H
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <termios.h>
 #include <QObject>
 #include <QTimer>
+
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <termios.h>
 #include <string>
 
 #include <mainwindow.h>
@@ -25,8 +26,7 @@ enum { comConnect,
        comStartRound,
        comDisconnect,
        comExit,
-       comHit,
-       comVictory,
+       comHit
      };
 
 class clientsocket: public QObject

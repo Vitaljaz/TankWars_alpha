@@ -1,23 +1,24 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <sys/ioctl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <termios.h>
 #include <QObject>
 #include <QTimer>
 #include <QDebug>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <sys/ioctl.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <termios.h>
 #include <string>
 #include <ctime>
 #include <fcntl.h>
-#include <address.h>
 
+#include <address.h>
 #include <clientsocket.h>
 
 class Server: public QObject

@@ -1,11 +1,12 @@
-#include "player.h"
-#include "box.h"
-#include "mainwindow.h"
-#include "wooden_box.h"
 #include <QKeyEvent>
 #include <QGraphicsScene>
 #include <QDebug>
 #include <QTimer>
+
+#include "player.h"
+#include "box.h"
+#include "mainwindow.h"
+#include "wooden_box.h"
 
 Player::Player(QGraphicsItem *parent): QGraphicsPixmapItem(parent)
 {

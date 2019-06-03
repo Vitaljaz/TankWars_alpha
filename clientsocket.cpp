@@ -166,7 +166,6 @@ void clientsocket::checkSock(){
 
     switch(command){
     case comReady:{
-        ioctl(sock, FIONREAD, &byteAv);
         qint16 playerID;
         in >> playerID;
         qDebug() << "[Client]: Setting ready " << playerID;
@@ -175,7 +174,6 @@ void clientsocket::checkSock(){
         break;
     }
     case comMove:{
-        ioctl(sock, FIONREAD, &byteAv);
         qint16 playerID, x, y, angle;
         in >> playerID;
         in >> x;
@@ -186,7 +184,6 @@ void clientsocket::checkSock(){
         break;
     }
     case comShoot:{
-        ioctl(sock, FIONREAD, &byteAv);
         qint16 playerID, x, y, lastkey;
         in >> playerID;
         in >> x;
@@ -197,24 +194,20 @@ void clientsocket::checkSock(){
         break;
     }
     case comStartGame:{
-        ioctl(sock, FIONREAD, &byteAv);
         emit startGame();
         break;
     }
     case comNextRound:{
-        ioctl(sock, FIONREAD, &byteAv);
         qint16 playerID;
         in >> playerID;
         emit startNextRound(playerID);
         break;
     }
     case comStartRound:{
-        ioctl(sock, FIONREAD, &byteAv);
         emit startRound();
         break;
     }
     case comDisconnect:{
-        ioctl(sock, FIONREAD, &byteAv);
         qint16 playerID;
         in >> playerID;
         qDebug() << "[Client]: accept disconnect " << playerID;
@@ -222,7 +215,6 @@ void clientsocket::checkSock(){
         break;
     }
     case comExit:{
-        ioctl(sock, FIONREAD, &byteAv);
         qint16 playerID;
         in >> playerID;
         qDebug() << "[Client]: accept exit " << playerID;
@@ -236,6 +228,5 @@ void clientsocket::checkSock(){
         break;
     }
     }
-    ioctl(sock, FIONREAD, &byteAv);
 }
 
