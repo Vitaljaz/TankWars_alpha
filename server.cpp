@@ -137,12 +137,12 @@ void Server::checkSock(){
     readBuffer.append(buf, 1024);
     bzero(buf, 1024);
     QDataStream in (readBuffer);
-    int command;
+    qint16 command;
     in >> command;
 
     switch (command)
     {
-    case comMove: {
+    case clientsocket::comMove: {
         qint16 playerID, x, y, angle;
         in >> playerID;
         in >> x;
@@ -152,7 +152,7 @@ void Server::checkSock(){
 
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
-        out << comMove;
+        out << clientsocket::comMove;
         out << playerID;
         out << x;
         out << y;
@@ -162,7 +162,7 @@ void Server::checkSock(){
 
         break;
     }
-    case comShoot: {
+    case clientsocket::comShoot: {
         qint16 playerID, x, y, lastkey;
         in >> playerID;
         in >> x;
@@ -171,7 +171,7 @@ void Server::checkSock(){
 
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
-        out << comShoot;
+        out << clientsocket::comShoot;
         out << playerID;
         out << x;
         out << y;
@@ -180,76 +180,76 @@ void Server::checkSock(){
         sendToClient(0, port, block);
         break;
     }
-    case comStartGame: {
+    case clientsocket::comStartGame: {
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
-        out << comStartGame;
+        out << clientsocket::comStartGame;
 
         sendToClient(0, port, block);
         break;
     }
-    case comStartRound: {
+    case clientsocket::comStartRound: {
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
-        out << comStartRound;
+        out << clientsocket::comStartRound;
 
         sendToClient(0, port, block);
         break;
     }
-    case comDisconnect: {
+    case clientsocket::comDisconnect: {
         qint16 playerID;
         in >> playerID;
         qDebug() << "[Server]: accept disconnect " << playerID;
 
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
-        out << comDisconnect;
+        out << clientsocket::comDisconnect;
         out << playerID;
 
         sendToClient(0, port, block);
         break;
     }
-    case comNextRound: {
+    case clientsocket::comNextRound: {
         qint16 playerID;
         in >> playerID;
 
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
-        out << comNextRound;
+        out << clientsocket::comNextRound;
         out << playerID;
 
         sendToClient(0, port, block);
         break;
     }
-    case comReady: {
+    case clientsocket::comReady: {
         qint16 playerID;
         in >> playerID;
         qDebug() <<"[Server]: accept ready " << playerID;
 
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
-        out << comReady;
+        out << clientsocket::comReady;
         out << playerID;
 
         sendToClient(0, port, block);
         break;
 
     }
-    case comExit: {
+    case clientsocket::comExit: {
         qint16 playerID;
         in >> playerID;
         qDebug() << "[Server]: accept exit " << playerID;
 
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
-        out << comExit;
+        out << clientsocket::comExit;
         out << playerID;
 
         sendToClient(0, port, block);
 
         break;
     }
-    case comHit: {
+    case clientsocket::comHit: {
         qint16 playerID;
         in >> playerID;
 
@@ -271,7 +271,7 @@ void Server::checkSock(){
         qDebug() << "[Server]: BlueHP: " << blueTankHP << " RedHP: "<< redTankHP;
         QByteArray block;
         QDataStream out(&block, QIODevice::WriteOnly);
-        out << comHit;
+        out << clientsocket::comHit;
         out << playerID;
 
         sendToClient(1, port, block);
@@ -287,7 +287,7 @@ void Server::sendStartGame()
 {
     QByteArray block;
     QDataStream out(&block, QIODevice::WriteOnly);
-    out << comStartGame;
+    out << clientsocket::comStartGame;
     int byteCount = block.size();
     qDebug() << "[Server]: Start game!";
     sendto(listener, block.data(), byteCount, 0,

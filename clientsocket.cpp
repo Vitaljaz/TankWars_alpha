@@ -161,7 +161,7 @@ void clientsocket::checkSock(){
     readBuffer.append(buf, 1024);
     bzero(buf, 1024);
     QDataStream in (readBuffer);
-    int command;
+    qint16 command;
     in >> command;
 
     switch(command){

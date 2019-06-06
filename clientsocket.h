@@ -17,23 +17,24 @@
 
 #include <mainwindow.h>
 
-enum { comConnect,
-       comReady,
-       comMove,
-       comShoot,
-       comStartGame,
-       comNextRound,
-       comStartRound,
-       comDisconnect,
-       comExit,
-       comHit
-     };
+
 
 class clientsocket: public QObject
 {
     Q_OBJECT
 public:
     clientsocket();
+
+    static const qint16 comConnect = 0;
+    static const qint16 comReady = 1;
+    static const qint16 comMove = 2;
+    static const qint16 comShoot = 3;
+    static const qint16 comStartGame = 4;
+    static const qint16 comNextRound = 5;
+    static const qint16 comStartRound = 6;
+    static const qint16 comDisconnect = 7;
+    static const qint16 comExit = 8;
+    static const qint16 comHit = 9;
 
     bool connectToServer(QString strIp, int port_);
     void disconnect();
